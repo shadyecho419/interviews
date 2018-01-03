@@ -1,11 +1,11 @@
 # Realmdigital Pre-Interview Refactoring #
 
-The code contained herein contains duplication and inconsistencies, and bad practices.
+The code contained herein contains duplication, inconsistencies, implements bad practices and is untestable.
 
 ### What to do? ###
 
 * Fork this repository
-* Refactor the code to be more manageable and consistent
+* Refactor the code to be more maintainable and testable, using best practices
 * Send a link to your forked repository, and your CV to mvankradenburg@realmdigital.co.za
 
 ### Contribution guidelines ###
