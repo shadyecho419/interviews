@@ -23,7 +23,8 @@ class ProductController {
     public function getById_GET(Application $app, $id){
         if($this->debug > 0)
             echo __METHOD__ . " starting now " . "<br/>";
-            
+        
+        // if parameter is not set send an error back    
         if(!isset($id)){
             $response["error"] = TRUE;
             $response["error_msg"] = "ID Parameter not set";
@@ -31,6 +32,7 @@ class ProductController {
             return $response;
         }
         
+        // if parameter is not set send an error back
         if(!isset($app)){
             $response["error"] = TRUE;
             $response["error_msg"] = "App parameter not set";
@@ -38,7 +40,8 @@ class ProductController {
             return $response;
         }
         
-        $requestUrl = $baseUrl . "&id=$id";
+        //format request URL with url encoding for parameter
+        $requestUrl = $baseUrl . "&id=" . urlencode($id);
         if($this->debug > 0)
             echo __METHOD__ . " Request URL: $requestUrl" . "<br/>";
             
@@ -46,6 +49,7 @@ class ProductController {
         if($this->debug > 0)
             echo __METHOD__ . " CURL request done" . "<br/>";
         
+        //if false request was succeessful.
         if(!$response["error"]){
             $result = getProductPrice($response["result"]);
             $result = json_encode($result);
@@ -56,6 +60,7 @@ class ProductController {
             return $app->render('products/product.detail.twig', $result);
         }
         
+        //an error has occured so send the error message as the response
         $response = json_encode($response);
         if($this->debug > 0)
             echo __METHOD__ . " Returning request result due to error: $response" . "<br/>";
@@ -66,7 +71,12 @@ class ProductController {
     private function execCurlReq($requestParm){
         if($this->debug > 0)
             echo __METHOD__ . " starting now with parameter $requestParm" . "<br/>";
-            
+        
+        /*
+         * used GET as request type as it appears the request type is GET.
+         * Incase it is a POST changing the code to make it perform a POST request
+         * is not difficult at all
+         */
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL,  $requestParm);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
@@ -96,13 +106,13 @@ class ProductController {
     }
     
     /*
-     * get price from response. Parse response from 
+     * get price from response. 
      */
     function getProductPrice($response){
         if($this->debug > 0)
-            echo __METHOD__ . " starting now with parameter" . "<br/>";
+            echo __METHOD__ . " starting CURL request" . "<br/>";
             
-        $price = [];
+        $productPrice = [];
         $i_size = count($response);
         for ($i =0; $i < $i_size ;$i++) {
             $prod = array();
@@ -122,11 +132,11 @@ class ProductController {
                     $prod["prices"][] = $p_price;
                 }
             }
-            $price[] = $prod;
+            $productPrice[] = $prod;
         }
         
         $result["error"] = FALSE;
-        $result["result"] = $price;
+        $result["result"] = $productPrice;
         if($this->debug > 0)
             echo __METHOD__ . " CURL request result: " . json_encode($result) . "<br/>";
                 
@@ -144,7 +154,8 @@ class ProductController {
     public function getByName_GET(Application $app, $name){
         if($this->debug > 0)
             echo __METHOD__ . " starting now " . "<br/>";
-            
+        
+        // if parameter is not set send an error back 
         if(!isset($name)){
             $response["error"] = TRUE;
             $response["error_msg"] = "Name Parameter not set";
@@ -152,6 +163,7 @@ class ProductController {
             return $response;
         }
         
+        // if parameter is not set send an error back 
         if(!isset($app)){
             $response["error"] = TRUE;
             $response["error_msg"] = "App parameter not set";
@@ -159,7 +171,8 @@ class ProductController {
             return $response;
         }
         
-        $requestUrl = $baseUrl . "&names=$name";
+        //format request URL with url encoding for parameter
+        $requestUrl = $baseUrl . "&names=" . urlencode($name);
         if($this->debug > 0)
             echo __METHOD__ . " Request URL: $requestUrl" . "<br/>";
             
@@ -167,6 +180,7 @@ class ProductController {
         if($this->debug > 0)
             echo __METHOD__ . " CURL request done" . "<br/>";
         
+        //if false request was succeessful.
         if(!$response["error"]){
             $result = getProductPrice($response["result"]);
             $result = json_encode($result);
@@ -177,6 +191,7 @@ class ProductController {
             return $app->render('products/products.twig', $result);
         }
         
+        //an error has occured so send the error message as the response
         $response = json_encode($response);
         if($this->debug > 0)
                 echo __METHOD__ . " Returning request result due to error: $response" . "<br/>";
