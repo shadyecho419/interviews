@@ -22,7 +22,7 @@ class ProductController {
      */
     public function getById_GET(Application $app, $id){
         if($this->debug > 0)
-            echo __METHOD__ . " starting now " . "<br/>";
+            echo sprintf("%s Starting now", __METHOD__ );
         
         // if parameter is not set send an error back    
         if(!isset($id)){
@@ -41,13 +41,12 @@ class ProductController {
         }
         
         //format request URL with url encoding for parameter
-        $requestUrl = $baseUrl . "&id=" . urlencode($id);
+        $requestUrl = $baseUrl . "&id=" . $id;
+        $requestUrl = urlencode($requestUrl);
         if($this->debug > 0)
-            echo __METHOD__ . " Request URL: $requestUrl" . "<br/>";
+            echo sprintf("%s Request URL: %s", __METHOD__ ,$requestUrl);
             
         $response = execCurlReq($requestUrl);
-        if($this->debug > 0)
-            echo __METHOD__ . " CURL request done" . "<br/>";
         
         //if false request was succeessful.
         if(!$response["error"]){
@@ -55,7 +54,7 @@ class ProductController {
             $result = json_encode($result);
             
             if($this->debug > 0)
-                echo __METHOD__ . " Returning successful request results: $result" . "<br/>";
+                echo sprintf("%s Returning successful request results: %s", __METHOD__ ,$result);
             
             return $app->render('products/product.detail.twig', $result);
         }
@@ -63,14 +62,19 @@ class ProductController {
         //an error has occured so send the error message as the response
         $response = json_encode($response);
         if($this->debug > 0)
-            echo __METHOD__ . " Returning request result due to error: $response" . "<br/>";
+            echo sprintf("%s Returning request result due to error: %s", __METHOD__ ,$response);
                 
         return $app->render('products/product.detail.twig', $response);
     }
     
+    /*
+     * perform CURL request
+     * @pram $requestParm - HTTP GET URL
+     * @return
+     */
     private function execCurlReq($requestParm){
         if($this->debug > 0)
-            echo __METHOD__ . " starting now with parameter $requestParm" . "<br/>";
+            echo sprintf("%s Starting CURL request with parameter: %s", __METHOD__ ,$requestParm);
         
         /*
          * used GET as request type as it appears the request type is GET.
@@ -90,9 +94,9 @@ class ProductController {
         
         if(curl_errno($curl)){
             $response["error"] = TRUE;
-            $response["error_msg"] = "Error performing request: " . curl_error($curl);
+            $response["error_msg"] = sprintf("Error performing request: %s", curl_error($curl));
             if($this->debug > 0)
-                echo __METHOD__ . " CURL request error: " . curl_error($curl) . "<br/>";
+                echo sprintf("%s CURL request error: %s", __METHOD__ ,curl_error($curl));
             
             return $response;
         }
@@ -100,17 +104,19 @@ class ProductController {
         $response["error"] = FALSE;
         $response["result"] = $result;
         if($this->debug > 0)
-                echo __METHOD__ . " CURL request result: " . json_encode($response) . "<br/>";
+            echo sprintf("%s CURL request result: %s", __METHOD__ ,json_encode($response));
         
         return $response;
     }
     
     /*
-     * get price from response. 
+     * get price from response.
+     * @pram $response - curl request response
+     * @return
      */
     function getProductPrice($response){
         if($this->debug > 0)
-            echo __METHOD__ . " starting CURL request" . "<br/>";
+            echo sprintf("%s Starting now", __METHOD__);
             
         $productPrice = [];
         $i_size = count($response);
@@ -138,7 +144,7 @@ class ProductController {
         $result["error"] = FALSE;
         $result["result"] = $productPrice;
         if($this->debug > 0)
-            echo __METHOD__ . " CURL request result: " . json_encode($result) . "<br/>";
+            echo sprintf("%s Done now: %s", __METHOD__ ,json_encode($result));
                 
         return $result;
     }
@@ -153,7 +159,7 @@ class ProductController {
      */
     public function getByName_GET(Application $app, $name){
         if($this->debug > 0)
-            echo __METHOD__ . " starting now " . "<br/>";
+            echo sprintf("%s Starting now", __METHOD__);
         
         // if parameter is not set send an error back 
         if(!isset($name)){
@@ -173,12 +179,12 @@ class ProductController {
         
         //format request URL with url encoding for parameter
         $requestUrl = $baseUrl . "&names=" . urlencode($name);
+        $requestUrl = urlencode($requestUrl);
+        
         if($this->debug > 0)
-            echo __METHOD__ . " Request URL: $requestUrl" . "<br/>";
+            echo sprintf("%s Request URL: %s", __METHOD__ ,$requestUrl);
             
         $response = execCurlReq($requestUrl);
-        if($this->debug > 0)
-            echo __METHOD__ . " CURL request done" . "<br/>";
         
         //if false request was succeessful.
         if(!$response["error"]){
@@ -186,7 +192,7 @@ class ProductController {
             $result = json_encode($result);
             
             if($this->debug > 0)
-                echo __METHOD__ . " Returning successful request results: $result" . "<br/>";
+                echo sprintf("%s Returning successful request results: %s", __METHOD__ ,$result);
                 
             return $app->render('products/products.twig', $result);
         }
@@ -194,7 +200,7 @@ class ProductController {
         //an error has occured so send the error message as the response
         $response = json_encode($response);
         if($this->debug > 0)
-                echo __METHOD__ . " Returning request result due to error: $response" . "<br/>";
+            echo sprintf("%s Returning request result due to error: %s", __METHOD__ ,$response);
                 
         return $app->render('products/product.detail.twig', $response);
     }
