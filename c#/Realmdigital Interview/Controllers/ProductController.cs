@@ -11,33 +11,56 @@ namespace Realmdigital_Interview.Controllers
 {
     public class ProductController
     {
-        private string response = "";
-        private string baseURL = "http://192.168.0.241/eanlist?type=Web";
+        private string RequestResponse = "";
+        private const string baseURL = "http://192.168.0.241/eanlist?type=Web";
+        private List<object> ProductPriceResult = new List<object>();
 
         [Route("product")]
-        public string GetProductById(string productId)
+        public string GetProductById(string ProductId)
         {
-            string response = GetRequestResponse("id", productId);
-            return JsonConvert.SerializeObject(GetProductPrice(response)); //convert result to json string and return
+            if(ProductId.Trim() != "")
+            {
+                string RequestResponse = GetRequestResponse("id", ProductId);
+                return JsonConvert.SerializeObject(GetProductPrice(RequestResponse)); //convert result to json string and return
+            }
+
+            ProductPriceResult.Add(new
+            {
+                Success = false,
+                Message = "Invalid ID parameter set for request"
+            });
+
+            return JsonConvert.SerializeObject(ProductPriceResult);
         }
 
         [Route("product/search")]
-        public string GetProductsByName(string productName)
+        public string GetProductsByName(string ProductName)
         {
-            string response = GetRequestResponse("names", productName);
-            return JsonConvert.SerializeObject(GetProductPrice(response)); //convert result to json string and return
+            if (ProductName.Trim() != "")
+            {
+                string RequestResponse = GetRequestResponse("names", ProductName);
+                return JsonConvert.SerializeObject(GetProductPrice(RequestResponse)); //convert result to json string and return
+            }
+
+            ProductPriceResult.Add(new
+            {
+                Success = false,
+                Message = "Invalid Name parameter set for request"
+            });
+
+            return JsonConvert.SerializeObject(ProductPriceResult);
         }
         
         /*
-         *  moved request to one function using key as parm name and value as the value of the parm for the POST request
+         *  moved request to one function using Key as parm name and Value as the Value of the parm for the POST request
          */
-        private string GetRequestResponse(string key, string value){
+        private string GetRequestResponse(string Key, string Value){
             try
             {
                 using (var client = new WebClient())
                 {
                     client.Headers[HttpRequestHeader.ContentType] = "application/json";
-                    response = client.UploadString(baseURL, "POST", String.Format("{ \"{0}\": \"{1}\" }", key, value));
+                    RequestResponse = client.UploadString(baseURL, "POST", String.Format("{ \"{0}\": \"{1}\" }", Key, Value));
                 }
 
             }
@@ -46,60 +69,69 @@ namespace Realmdigital_Interview.Controllers
                 Console.WriteLine("An error occured while trying POST request: {0}", ex);
             }
 
-            return response != "" ? response : null;
+            return RequestResponse != "" ? RequestResponse : null;
         }
         
         /*
          * returning List<Object> is more uniform for procesing a singular result (using unique ID) 
          * as well as many results (using name for search)
          */
-        private List<object> GetProductPrice(String response){
-            var result = new List<object>();
-            var prices = new List<object>(); // moved out to prevent instantiation of a new object in each loop run
+        private List<object> GetProductPrice(String RequestResponse){         
+            var ProductPrice = new List<object>(); // moved out to prevent instantiation of a new object in each loop run
             try
             {
-                var reponseObject = JsonConvert.DeserializeObject<List<ApiResponseProduct>>(response);              
-                for (int i = 0; i < reponseObject.Count; i++)
+                var ReponseObject = JsonConvert.DeserializeObject<List<ApiRequestResponseProduct>>(RequestResponse);              
+                for (int i = 0; i < ReponseObject.Count; i++)
                 {
-                    prices = new List<object>();
-                    for (int j = 0; j < reponseObject[i].PriceRecords.Count; j++)
+                    ProductPrice = new List<object>();
+                    for (int j = 0; j < ReponseObject[i].PriceRecords.Count; j++)
                     {
-                        if (reponseObject[i].PriceRecords[j].CurrencyCode == "ZAR")
+                        if (ReponseObject[i].PriceRecords[j].CurrencyCode == "ZAR")
                         {
-                            prices.Add(new
+                            ProductPrice.Add(new
                             {
-                                Price = reponseObject[i].PriceRecords[j].SellingPrice,
-                                Currency = reponseObject[i].PriceRecords[j].CurrencyCode
+                                Price = ReponseObject[i].PriceRecords[j].SellingPrice,
+                                Currency = ReponseObject[i].PriceRecords[j].CurrencyCode
                             });
                         }
                     }
 
-                    result.Add(new
+                    ProductPriceResult.Add(new
                     {
-                        Id = reponseObject[i].BarCode,
-                        Name = reponseObject[i].ItemName,
-                        Prices = prices
+                        Success = true,
+                        Id = ReponseObject[i].BarCode,
+                        Name = ReponseObject[i].ItemName,
+                        Prices = ProductPrice
                     });
-                    prices = null;
+                    ProductPrice = null;
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine("An error occured while getting product price: {0}", ex);
             }
+
+            if(ProductPriceResult.Count < 0)
+            {
+                ProductPriceResult.Add(new
+                {
+                    Success = false,
+                    Message = "No price for requested item"
+                });
+            }
             
-            return result.Count > 0 ? result : null;
+            return ProductPriceResult;
         }
     }
 
-    class ApiResponseProduct
+    class ApiRequestResponseProduct
     {
         public string BarCode { get; set; }
         public string ItemName { get; set; }
-        public List<ApiResponsePrice> PriceRecords { get; set; }
+        public List<ApiRequestResponsePrice> PriceRecords { get; set; }
     }
 
-    class ApiResponsePrice
+    class ApiRequestResponsePrice
     {
         public string SellingPrice { get; set; }
         public string CurrencyCode { get; set; }
